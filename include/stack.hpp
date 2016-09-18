@@ -4,7 +4,7 @@ class stack
 public:
 	stack() : array_(nullptr), array_size_(0), count_(0) {} /*noexcept*/
 	stack(const stack & _stack); /*noexcept*/
-	stack& operator=(const stack & _stack); /*basic*/
+	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
 	void push(T const &); /*strong*/
 	void pop(); /*noexcept*/
@@ -35,10 +35,12 @@ stack<T>& stack<T>::operator=(const stack & _stack) {
 		T* new_array = new T[_stack.array_size_];
 		delete[] array_;
 		array_ = new_array;
-		array_size_ = _stack.array_size_;
 	}
-	std::copy(_stack.array_, _stack.array_ + _stack.count_, array_);
+	T* midterm = new T[_stack.array_size_];								//Only for strict
+	std::copy(_stack.array_, _stack.array_ + _stack.count_, midterm);   //warranty and copy.
+	array_ = midterm;
 	count_ = _stack.count_;
+	array_size_ = _stack.array_size_;
 	return *this;
 }
 
