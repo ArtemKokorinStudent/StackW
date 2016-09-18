@@ -9,12 +9,13 @@ TEST_CASE("Stack can be instantiated by various types", "[instantiation]") {
 	REQUIRE_NOTHROW(stack<int*> st1);
 	REQUIRE_NOTHROW(stack<stack<int>> st1);
 }
-TEST_CASE("Push, pop", "[push_pop]") {
+TEST_CASE("Push, pop, top", "[push_pop_top]") {
 	stack<int> st;
 	st.push(1);
 	st.push(2);
-	REQUIRE(st.pop() == 2);
-	REQUIRE(st.pop() == 1);
+	REQUIRE(st.top() == 2);
+	st.pop();
+	REQUIRE(st.top() == 1);
 }
 TEST_CASE("count", "[count]") {
 	stack<int> st;
@@ -34,13 +35,26 @@ TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
 	st1.push(2);
 	REQUIRE_NOTHROW(stack<int> st2 = st1);
 	REQUIRE_NOTHROW(stack<int> st2;
-		st2 = st1);
+	st2 = st1);
 
 	stack<int> st3 = st1;
 	stack<int> st4 = st1;
-	REQUIRE(st1.pop() == 2);
-	REQUIRE(st3.pop() == 2);
-	REQUIRE(st3.pop() == 1);
-	REQUIRE(st4.pop() == 2);
-	REQUIRE(st4.pop() == 1);
+	REQUIRE(st1.top() == 2);
+	REQUIRE(st3.top() == 2);
+	st3.pop();
+	REQUIRE(st3.top() == 1);
+	REQUIRE(st4.top() == 2);
+	st4.pop();
+	REQUIRE(st4.top() == 1);
+}
+
+int main(int argc, char* const argv[])
+{
+	// global setup...
+
+	int result = Catch::Session().run(argc, argv);
+
+	// global clean-up...
+	system("pause");
+	return result;
 }
