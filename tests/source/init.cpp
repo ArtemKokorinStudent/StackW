@@ -47,14 +47,3 @@ TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
 	st4.pop();
 	REQUIRE(st4.top() == 1);
 }
-
-int main(int argc, char* const argv[])
-{
-	// global setup...
-
-	int result = Catch::Session().run(argc, argv);
-
-	// global clean-up...
-	system("pause");
-	return result;
-}
