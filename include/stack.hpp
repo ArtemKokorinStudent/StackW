@@ -5,12 +5,12 @@ class stack
 {
 public:
 	stack() : array_(nullptr), array_size_(0), count_(0) {} /*noexcept*/
-	stack(const stack & _stack); /*noexcept*/
+	stack(const stack & _stack); /*strong*/
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
 	void push(T const &); /*strong*/
-	void pop(); /*noexcept*/
-	T& top(); /*strong*/
+	void pop(); /*strong*/
+	const T& top() const; /*strong*/
 	~stack(); /*noexcept*/
 private:
 	T* array_;
@@ -22,8 +22,8 @@ private:
 template<typename T>
 stack<T>::stack(const stack & _stack)
 	: array_(newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_)),
-	array_size_(array_ != nullptr ? _stack.array_size_ : 0),
-	count_(array_ != nullptr ? _stack.count_ : 0) {
+	array_size_(_stack.array_size_),
+	count_(_stack.count_) {
 	;
 }
 
@@ -37,9 +37,7 @@ stack<T>& stack<T>::operator=(const stack & _stack) {
 		delete[] array_;
 		array_ = new_array;
 	}
-	T* midterm = new T[_stack.array_size_];								//Only for strict
-	std::copy(_stack.array_, _stack.array_ + _stack.count_, midterm);   //warranty and copy.
-	array_ = midterm;
+	array_ = newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_);
 	count_ = _stack.count_;
 	array_size_ = _stack.array_size_;
 	return *this;
@@ -57,12 +55,7 @@ void stack<T>::push(T const & new_element)
 	if (count_ >= array_size_) {
 		rereserve((array_size_ * 3) / 2 + 1, count_); //can throw
 	}
-	try {
-		array_[count_] = new_element;
-	}
-	catch (...) {
-		count_--;
-	}
+	array_[count_] = new_element;
 	count_++;
 }
 
@@ -71,14 +64,16 @@ void stack<T>::pop()
 {
 	if (count_ != 0) {
 		count_--;
+	} else{
+		throw("pop(): count_ == 0");
 	}
 }
 
 template<typename T>
-T& stack<T>::top()
+const T& stack<T>::top() const
 {
 	if (count_ == 0) {
-		throw ("count_ == 0");
+		throw ("top(): count_ == 0");
 	}
 	return array_[count_ - 1];
 }
@@ -92,7 +87,6 @@ stack<T>::~stack()
 template<typename T>
 void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) {
 	T* new_array = newCopiedArray(array_, count_, new_size);
-	if (new_array == nullptr) throw(1);
 	delete[] array_;
 	array_ = new_array;
 	array_size_ = new_size;
@@ -108,7 +102,7 @@ T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 	}
 	catch (...) {
 		delete[] new_array;
-		new_array = nullptr;
+		throw ("newCopiedArray error");
 	}
 	return new_array;
 }
