@@ -1,4 +1,6 @@
 template <typename T>
+T* newCopiedArray(const T* source, size_t source_size, size_t destination_size);
+template <typename T>
 class stack
 {
 public:
@@ -15,7 +17,6 @@ private:
 	size_t array_size_;
 	size_t count_;
 	void rereserve(size_t new_size, size_t n_elements_to_copy); /*strong*/
-	T* newCopiedArray(const T* source, size_t source_size, size_t destination_size); /*strong*/
 };
 //T: T(), operator=, 
 template<typename T>
@@ -98,7 +99,7 @@ void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) {
 }
 
 template<typename T>
-T* stack<T>::newCopiedArray(const T* source, size_t source_count, size_t destination_size)
+T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 {
 	T* new_array = nullptr;
 	try {
