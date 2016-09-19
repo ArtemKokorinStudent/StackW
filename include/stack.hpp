@@ -16,7 +16,6 @@ private:
 	T* array_;
 	size_t array_size_;
 	size_t count_;
-	void rereserve(size_t new_size, size_t n_elements_to_copy); /*strong*/
 };
 //T: T(), operator=, 
 template<typename T>
@@ -85,15 +84,6 @@ template<typename T>
 stack<T>::~stack() /*noexcept*/
 {
 	delete[] array_;
-}
-
-template<typename T>
-void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) /*strong*/
-{
-	T* new_array = newCopiedArray(array_, count_, new_size);
-	delete[] array_;
-	array_ = new_array;
-	array_size_ = new_size;
 }
 
 template<typename T>
