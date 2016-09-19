@@ -1,5 +1,5 @@
 template <typename T>
-T* newCopiedArray(const T* source, size_t source_size, size_t destination_size);
+T* newCopiedArray(const T* source, size_t source_size, size_t destination_size); /*strong*/
 template <typename T>
 class stack
 {
@@ -20,7 +20,7 @@ private:
 };
 //T: T(), operator=, 
 template<typename T>
-stack<T>::stack(const stack & _stack)
+stack<T>::stack(const stack & _stack) /*strong*/
 	: array_(newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_)),
 	array_size_(_stack.array_size_),
 	count_(_stack.count_) {
@@ -28,29 +28,26 @@ stack<T>::stack(const stack & _stack)
 }
 
 template<typename T>
-stack<T>& stack<T>::operator=(const stack & _stack) {
-	if (this == &_stack) {
-		return *this;
-	}
-	if (array_size_ < _stack.count_) {
-		T* new_array = new T[_stack.array_size_];
+stack<T>& stack<T>::operator=(const stack & _stack) /*strong*/
+{
+	if (this != &_stack) {
+		T* midterm = newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_);
 		delete[] array_;
-		array_ = new_array;
+		array_ = midterm;
+		count_ = _stack.count_;
+		array_size_ = _stack.array_size_;
 	}
-	array_ = newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_);
-	count_ = _stack.count_;
-	array_size_ = _stack.array_size_;
 	return *this;
 }
 
 template<typename T>
-size_t stack<T>::count() const
+size_t stack<T>::count() const /*noexcept*/
 {
 	return count_;
 }
 
 template<typename T>
-void stack<T>::push(T const & new_element)
+void stack<T>::push(T const & new_element) /*strong*/
 {
 	if (count_ >= array_size_) {
 		rereserve((array_size_ * 3) / 2 + 1, count_); //can throw
@@ -60,7 +57,7 @@ void stack<T>::push(T const & new_element)
 }
 
 template<typename T>
-void stack<T>::pop()
+void stack<T>::pop() /*strong*/
 {
 	if (count_ != 0) {
 		count_--;
@@ -70,7 +67,7 @@ void stack<T>::pop()
 }
 
 template<typename T>
-const T& stack<T>::top() const
+const T& stack<T>::top() const /*strong*/
 {
 	if (count_ == 0) {
 		throw ("top(): count_ == 0");
@@ -79,13 +76,14 @@ const T& stack<T>::top() const
 }
 
 template<typename T>
-stack<T>::~stack()
+stack<T>::~stack() /*noexcept*/
 {
 	delete[] array_;
 }
 
 template<typename T>
-void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) {
+void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) /*strong*/
+{
 	T* new_array = newCopiedArray(array_, count_, new_size);
 	delete[] array_;
 	array_ = new_array;
@@ -93,7 +91,7 @@ void stack<T>::rereserve(size_t new_size, size_t n_elements_to_copy) {
 }
 
 template<typename T>
-T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
+T* newCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
 {
 	T* new_array = nullptr;
 	try {
@@ -102,7 +100,7 @@ T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 	}
 	catch (...) {
 		delete[] new_array;
-		throw ("newCopiedArray error");
+		throw ();
 	}
 	return new_array;
 }
