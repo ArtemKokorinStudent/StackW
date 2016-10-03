@@ -11,6 +11,7 @@ public:
 	void push(T const &); /*strong*/
 	void pop(); /*strong*/
 	const T& top() const; /*strong*/
+        bool empty() const {return count_ == 0?true:false; }/*noexcept*/
 	~stack(); /*noexcept*/
 private:
 	T* array_;
