@@ -1,5 +1,6 @@
 template <typename T>
 T* newCopiedArray(const T* source, size_t source_size, size_t destination_size); /*strong*/
+
 template <typename T>
 class stack
 {
@@ -50,7 +51,13 @@ void stack<T>::push(T const & new_element) /*strong*/
 	if (count_ >= array_size_) {
 		size_t new_size = (array_size_ * 3) / 2 + 1;
 		T* new_array = newCopiedArray(array_, count_, new_size);
-		new_array[count_] = new_element;
+		try {
+			new_array[count_] = new_element;
+		}
+		catch (...) {
+			delete[] new_array;
+			throw;
+		}
 		delete[] array_;
 		array_ = new_array;
 		array_size_ = new_size;
