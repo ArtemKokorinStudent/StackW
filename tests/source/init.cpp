@@ -43,14 +43,3 @@ TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
 	REQUIRE(st3.count() == 0);
 	REQUIRE(st1.pop() == 1);
 }
-
-int main(int argc, char* const argv[])
-{
-	// global setup...
-
-	int result = Catch::Session().run(argc, argv);
-
-	// global clean-up...
-	system("pause");
-	return result;
-}
