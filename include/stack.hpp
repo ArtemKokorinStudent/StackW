@@ -8,12 +8,8 @@ public:
 	stack(const stack & _stack); /*strong*/
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
-
-	//void push(T const &); /*strong*/
-	//void pop(); /*strong*/
+	void push(T const &); /*strong*/
 	T pop(); /*strong*/
-	const T& top() const; /*strong*/
-    //bool empty() const { return count_ == 0; }/*noexcept*/
 	~stack(); /*noexcept*/
 private:
 	T* array_;
@@ -58,7 +54,8 @@ void stack<T>::push(T const & new_element) /*strong*/
 		delete[] array_;
 		array_ = new_array;
 		array_size_ = new_size;
-	} else {
+	}
+	else {
 		array_[count_] = new_element;
 	}
 	count_++;
@@ -70,28 +67,11 @@ T stack<T>::pop() /*strong*/
 	if (count_ != 0) {
 		count_--;
 		return array_[count_];
-	} else{
+	}
+	else {
 		throw("pop(): count_ == 0");
 	}
 }
-//template<typename T>
-//void stack<T>::pop() /*strong*/
-//{
-//	if (count_ != 0) {
-//		count_--;
-//	} else{
-//		throw("pop(): count_ == 0");
-//	}
-//}
-//
-//template<typename T>
-//const T& stack<T>::top() const /*strong*/
-//{
-//	if (count_ == 0) {
-//		throw ("top(): count_ == 0");
-//	}
-//	return array_[count_ - 1];
-//}
 
 template<typename T>
 stack<T>::~stack() /*noexcept*/
