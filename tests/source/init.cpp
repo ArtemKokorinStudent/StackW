@@ -47,3 +47,9 @@ TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
 	st4.pop();
 	REQUIRE(st4.top() == 1);
 }
+TEST_CASE("Empty", "[empty]") {
+	stack<int> st1;
+	REQUIRE(st1.empty());
+	st1.push(38);
+	REQUIRE(!st1.empty());
+}
