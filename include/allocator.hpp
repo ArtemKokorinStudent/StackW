@@ -30,7 +30,7 @@ protected:
 };
 
 template<typename T>
-allocator<T>::allocator(size_t size = 0)
+allocator<T>::allocator(size_t size)
 {
 	ptr_ = new T[size];
 }
