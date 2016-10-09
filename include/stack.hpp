@@ -10,7 +10,8 @@ public:
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
 	void push(T const &); /*strong*/
-	T pop(); /*basic*/
+	T& top() const; /*strong*/
+	void pop(); /*strong*/
 	~stack(); /*noexcept*/
 private:
 	T* array_;
@@ -69,15 +70,21 @@ void stack<T>::push(T const & new_element) /*strong*/
 }
 
 template<typename T>
-T stack<T>::pop() /*basic*/
+T& stack<T>::top() const /*strong*/
 {
-	if (count_ != 0) {
-		count_--;
-		return array_[count_];
+	if (count_ == 0) {
+		throw ("top: count_ == 0");
 	}
-	else {
+	return array_[count_ - 1];
+}
+
+template<typename T>
+void stack<T>::pop() /*strong*/
+{
+	if (count_ == 0) {
 		throw("pop(): count_ == 0");
 	}
+	count_--;
 }
 
 template<typename T>
