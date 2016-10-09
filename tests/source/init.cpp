@@ -1,3 +1,7 @@
+#include <catch.hpp>
+
+#include "stack.hpp"
+
 TEST_CASE("Stack can be instantiated by various types", "[instantiation]") {
 	REQUIRE_NOTHROW(stack<int> st1);
 	REQUIRE_NOTHROW(stack<double> st1);
