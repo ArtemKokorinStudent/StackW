@@ -1,5 +1,4 @@
-template <typename T>
-T* newCopiedArray(const T* source, size_t source_size, size_t destination_size); /*strong*/
+#include "allocator.hpp"
 
 template <typename T>
 class stack
@@ -94,17 +93,3 @@ stack<T>::~stack() /*noexcept*/
 	delete[] array_;
 }
 
-template<typename T>
-T* newCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
-{
-	T* new_array = nullptr;
-	try {
-		new_array = new T[destination_size];
-		std::copy(source, source + source_count, new_array); //Throws if an element assignment throws
-	}
-	catch (...) {
-		delete[] new_array;
-		throw;
-	}
-	return new_array;
-}
