@@ -1,3 +1,4 @@
+#include <utility>
 template<typename T>
 T* newCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
 {
@@ -30,21 +31,27 @@ protected:
 };
 
 template<typename T>
-allocator<T>::allocator(size_t size)
+allocator<T>::allocator(size_t size):
+	ptr_(size == 0 ? nullptr : static_cast<T*>(operator new(size * sizeof(T)))),
+		size_(size), count_(0) /*strong*/
 {
-	ptr_ = new T[size];
+	;
 }
 
 template<typename T>
-allocator<T>::~allocator()
+allocator<T>::~allocator() /*noexcept*/
 {
-	delete[] ptr_;
-}
-
-template<typename T>
-auto allocator<T>::swap(allocator & other) -> void
-{
-	if (count_ > other.size_ || other.count_ > size_) {
-
+	for (size_t i = 0; i < count_; i++) {
+		ptr_[i].~T();
 	}
+	
+	::operator delete[](ptr_);
+}
+
+template<typename T>
+auto allocator<T>::swap(allocator & other) -> void /*noexcept*/
+{
+	std::swap(ptr_, other.ptr_);
+	std::swap(size_, other.size_);
+	std::swap(count_, other.count_);
 }
