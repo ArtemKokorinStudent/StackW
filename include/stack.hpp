@@ -57,7 +57,7 @@ void stack<T>::push(T const & new_element) /*strong*/
 			throw;
 		}
 		destroy(this->ptr_, this->ptr_ + this->count_);
-		::operator delete(ptr_);
+		::operator delete(this->ptr_);
 		this->ptr_ = new_array;
 		this->size_ = new_size;
 	}
