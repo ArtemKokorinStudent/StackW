@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include "catch.hpp"
 
 #include "stack.hpp"
 
@@ -16,6 +16,7 @@ TEST_CASE("Push, pop, top", "[push_pop_top]") {
 	REQUIRE(st.top() == 2);
 	st.pop();
 	REQUIRE(st.top() == 1);
+	st.pop();
 }
 TEST_CASE("count", "[count]") {
 	stack<int> st;
@@ -52,4 +53,44 @@ TEST_CASE("Empty", "[empty]") {
 	REQUIRE(st1.empty());
 	st1.push(38);
 	REQUIRE(!st1.empty());
+}
+TEST_CASE("Allocator doesn't (use or need) default ctors", "[allocator]") {
+	class A {
+	public:
+		A() {
+			throw "ctor is called";
+		}
+		A(int a) { 
+			;
+		}
+	};
+	REQUIRE_NOTHROW(
+		stack<A> st;
+		st.push(4);
+		st.push(20);
+	);
+	class B {
+	public:
+		B(int a) {
+			;
+		}
+	};
+	stack<B> st;
+	st.push(40);
+}
+bool dtor_is_called1 = false;
+TEST_CASE("Allocator calls dtors", "[allocator]") {
+	class A {
+	public:
+		A(int a) {
+			;
+		}
+		~A() {
+			dtor_is_called1 = true;
+		}
+	};
+	stack<A> st;
+	st.push(32);
+	st.pop();
+	REQUIRE(dtor_is_called1);
 }
