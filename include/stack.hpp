@@ -1,10 +1,9 @@
 #include "allocator.hpp"
-
 template <typename T>
-class stack
+class stack : public allocator<T>
 {
 public:
-	stack() : array_(nullptr), array_size_(0), count_(0) {} /*noexcept*/
+	stack() {}; /*noexcept*/
 	stack(const stack & _stack); /*strong*/
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
@@ -13,29 +12,26 @@ public:
 	void pop(); /*strong*/
 	bool empty() { return count_ == 0; } /*noexcept*/
 	~stack(); /*noexcept*/
-private:
-	T* array_;
-	size_t array_size_;
-	size_t count_;
 };
 //T: T(), operator=, 
 template<typename T>
 stack<T>::stack(const stack & _stack) /*strong*/
-	: array_(newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_)),
-	array_size_(_stack.array_size_),
-	count_(_stack.count_) {
-	;
+{
+	this->ptr_ = operatorNewCopiedArray(_stack.ptr_, _stack.count_, _stack.size_);
+	this->size_ = _stack.size_;
+	this->count_ = _stack.count_;
 }
 
 template<typename T>
 stack<T>& stack<T>::operator=(const stack & _stack) /*strong*/
 {
 	if (this != &_stack) {
-		T* midterm = newCopiedArray(_stack.array_, _stack.count_, _stack.array_size_);
-		delete[] array_;
-		array_ = midterm;
-		count_ = _stack.count_;
-		array_size_ = _stack.array_size_;
+		stack(_stack).swap(*this);
+		/*T* midterm = newCopiedArray(_stack.ptr_, _stack.count_, _stack.size_);
+		delete[] this->ptr_;
+		this->ptr_ = midterm;
+		this->count_ = _stack.count_;
+		this->size_ = _stack.size_;*/
 	}
 	return *this;
 }
@@ -43,53 +39,55 @@ stack<T>& stack<T>::operator=(const stack & _stack) /*strong*/
 template<typename T>
 size_t stack<T>::count() const /*noexcept*/
 {
-	return count_;
+	return this->count_;
 }
 
 template<typename T>
 void stack<T>::push(T const & new_element) /*strong*/
 {
-	if (count_ >= array_size_) {
-		size_t new_size = (array_size_ * 3) / 2 + 1;
-		T* new_array = newCopiedArray(array_, count_, new_size);
+	if (count_ >= this->size_) {
+		size_t new_size = (this->size_ * 3) / 2 + 1;
+		T* new_array = operatorNewCopiedArray(this->ptr_, this->count_, new_size);
 		try {
-			new_array[count_] = new_element;
+			construct(&new_array[this->count_], new_element);
 		}
 		catch (...) {
-			delete[] new_array;
+			destroy(new_array, new_array + this->count_);
+			::operator delete(new_array);
 			throw;
 		}
-		delete[] array_;
-		array_ = new_array;
-		array_size_ = new_size;
+		destroy(ptr_, ptr_ + this->count_);
+		::operator delete(ptr_);
+		this->ptr_ = new_array;
+		this->size_ = new_size;
 	}
 	else {
-		array_[count_] = new_element;
+		construct(&(this->ptr_[this->count_]), new_element);
 	}
-	count_++;
+	this->count_++;
 }
 
 template<typename T>
 T& stack<T>::top() const /*strong*/
 {
-	if (count_ == 0) {
+	if (this->count_ == 0) {
 		throw ("top: count_ == 0");
 	}
-	return array_[count_ - 1];
+	return this->ptr_[this->count_ - 1];
 }
 
 template<typename T>
 void stack<T>::pop() /*strong*/
 {
-	if (count_ == 0) {
+	if (this->count_ == 0) {
 		throw("pop(): count_ == 0");
 	}
-	count_--;
+	this->count_--;
 }
 
 template<typename T>
 stack<T>::~stack() /*noexcept*/
 {
-	delete[] array_;
+	destroy(this->ptr_, this->ptr_ + this->count_);
 }
 
