@@ -1,4 +1,23 @@
 #include <utility>
+template <typename T1, typename T2>
+void construct(T1 * ptr, T2 const & value) /*strong*/{
+	new(ptr) T1(value);
+}
+
+template <typename T>
+void destroy(T * ptr) noexcept
+{
+	ptr->~T();
+}
+
+template <typename FwdIter>
+void destroy(FwdIter first, FwdIter last) noexcept
+{
+	for (; first != last; ++first) {
+		destroy(&*first);
+	}
+}
+
 template<typename T>
 T* newCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
 {
@@ -9,6 +28,26 @@ T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 	}
 	catch (...) {
 		delete[] new_array;
+		throw;
+	}
+	return new_array;
+}
+
+template<typename T>
+T* operatorNewCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
+{
+	T* new_array = nullptr;
+	size_t n_placed_elements = 0;
+	try {
+		new_array = static_cast<T*>(operator new(destination_size * sizeof(T)));
+		for (size_t i = 0; i < source_count; ++i) {
+			construct(&new_array[i], source[i]);
+			++n_placed_elements;
+		}
+	}
+	catch (...) {
+		destroy(new_array, new_array + n_placed_elements);
+		::operator delete(new_array);
 		throw;
 	}
 	return new_array;
@@ -41,11 +80,7 @@ allocator<T>::allocator(size_t size):
 template<typename T>
 allocator<T>::~allocator() /*noexcept*/
 {
-	for (size_t i = 0; i < count_; i++) {
-		ptr_[i].~T();
-	}
-	
-	::operator delete[](ptr_);
+	::operator delete(ptr_);
 }
 
 template<typename T>
