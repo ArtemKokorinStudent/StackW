@@ -10,7 +10,7 @@ public:
 	void push(T const &); /*strong*/
 	T& top() const; /*strong*/
 	void pop(); /*strong*/
-	bool empty() { return count_ == 0; } /*noexcept*/
+	bool empty() { return this->count_ == 0; } /*noexcept*/
 	~stack(); /*noexcept*/
 };
 //T: T(), operator=, 
@@ -45,7 +45,7 @@ size_t stack<T>::count() const /*noexcept*/
 template<typename T>
 void stack<T>::push(T const & new_element) /*strong*/
 {
-	if (count_ >= this->size_) {
+	if (this->count_ >= this->size_) {
 		size_t new_size = (this->size_ * 3) / 2 + 1;
 		T* new_array = operatorNewCopiedArray(this->ptr_, this->count_, new_size);
 		try {
@@ -56,7 +56,7 @@ void stack<T>::push(T const & new_element) /*strong*/
 			::operator delete(new_array);
 			throw;
 		}
-		destroy(ptr_, ptr_ + this->count_);
+		destroy(this->ptr_, this->ptr_ + this->count_);
 		::operator delete(ptr_);
 		this->ptr_ = new_array;
 		this->size_ = new_size;
