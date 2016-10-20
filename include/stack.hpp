@@ -1,19 +1,24 @@
 #include "allocator.hpp"
 template <typename T>
-class stack : public allocator<T>
+class stack : private allocator<T>
 {
 public:
-	stack() {}; /*noexcept*/
+	stack(size_t size = 0); /*noexcept*/
 	stack(const stack & _stack); /*strong*/
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
 	void push(T const &); /*strong*/
-	T& top() const; /*strong*/
+	const T& top() const; /*strong*/
 	void pop(); /*strong*/
 	bool empty() { return this->count_ == 0; } /*noexcept*/
 	~stack(); /*noexcept*/
 };
-//T: T(), operator=, 
+
+template<typename T>
+stack<T>::stack(size_t size = 0) : allocator(size) {
+	;
+}
+
 template<typename T>
 stack<T>::stack(const stack & _stack) /*strong*/
 {
@@ -68,7 +73,7 @@ void stack<T>::push(T const & new_element) /*strong*/
 }
 
 template<typename T>
-T& stack<T>::top() const /*strong*/
+const T& stack<T>::top() const /*strong*/ //I don't understand first const
 {
 	if (this->count_ == 0) {
 		throw ("top: count_ == 0");
