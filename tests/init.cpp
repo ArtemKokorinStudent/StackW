@@ -30,13 +30,11 @@ TEST_CASE("count", "[count]") {
 	st.pop();
 	REQUIRE(st.count() == 0);
 }
-TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
+TEST_CASE("Copy constructor", "[copy_ctr]") {
 	stack<int> st1;
 	st1.push(1);
 	st1.push(2);
 	REQUIRE_NOTHROW(stack<int> st2 = st1);
-	REQUIRE_NOTHROW(stack<int> st2;
-	st2 = st1);
 
 	stack<int> st3 = st1;
 	stack<int> st4 = st1;
@@ -47,6 +45,18 @@ TEST_CASE("Copy constructor, =", "[copy_ctr, =]") {
 	REQUIRE(st4.top() == 2);
 	st4.pop();
 	REQUIRE(st4.top() == 1);
+}
+TEST_CASE("Equal", "[equal]") {
+	stack<int> st1;
+	REQUIRE_NOTHROW(stack<int> st2;
+	st2 = st1);
+	stack<int> st2;
+	st1.push(1);
+	st1.push(4);
+	st2 = st1;
+	REQUIRE(st2.top() == 4);
+	st2.pop();
+	REQUIRE(st2.top() == 1);
 }
 TEST_CASE("Empty", "[empty]") {
 	stack<int> st1;
