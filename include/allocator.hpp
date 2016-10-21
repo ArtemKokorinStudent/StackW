@@ -11,7 +11,7 @@ void destroy(T * ptr) noexcept
 }
 
 template <typename FwdIter>
-void destroy(FwdIter first, FwdIter last) noexcept
+void destroy(FwdIter first, FwdIter last) noexcept // 
 {
 	for (; first != last; ++first) {
 		destroy(&*first);
@@ -26,7 +26,7 @@ T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 		new_array = new T[destination_size];
 		std::copy(source, source + source_count, new_array); //Throws if an element assignment throws
 	}
-	catch (...) {
+	catch (...) {     // вызов конкретного исключения подкаласса Exception может ускорить поиск исключений
 		delete[] new_array;
 		throw;
 	}
