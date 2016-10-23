@@ -1,6 +1,7 @@
 #include <utility>
+
 template <typename T1, typename T2>
-void construct(T1 * ptr, T2 const & value) /*strong*/{
+void construct(T1 * ptr, const T2 & value) /*strong*/{
 	new(ptr) T1(value);
 }
 
@@ -34,7 +35,7 @@ T* newCopiedArray(const T* source, size_t source_count, size_t destination_size)
 }
 
 template<typename T>
-T* operatorNewCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
+T* operatorNewCopiedArray(const T * source, size_t source_count, size_t destination_size) /*strong*/
 {
 	T* new_array = nullptr;
 	size_t n_placed_elements = 0;
@@ -47,7 +48,7 @@ T* operatorNewCopiedArray(const T* source, size_t source_count, size_t destinati
 	}
 	catch (...) {
 		destroy(new_array, new_array + n_placed_elements);
-		::operator delete(new_array);
+		operator delete(new_array);
 		throw;
 	}
 	return new_array;
@@ -57,12 +58,12 @@ template <typename T>
 class allocator
 {
 protected:
-	allocator(size_t size = 0);
-	~allocator();
-	auto swap(allocator & other) -> void;
+	allocator(size_t size = 0); /*strong*/
+	~allocator(); /*noexcept*/
+	void swap(allocator & other); /*noexcept*/
 
-	allocator(allocator const &) = delete;
-	auto operator =(allocator const &)->allocator & = delete;
+	allocator(const allocator &) = delete;
+	auto operator =(const allocator &)->allocator & = delete;
 
 	T * ptr_;
 	size_t size_;
@@ -70,8 +71,11 @@ protected:
 };
 
 template<typename T>
-allocator<T>::allocator(size_t size):
-	ptr_(size == 0 ? nullptr : static_cast<T*>(operator new(size * sizeof(T)))),
+allocator<T>::allocator(size_t size) :
+	ptr_(size == 0 ?
+		nullptr : 
+		static_cast<T*>(operator new(size * sizeof(T)))
+		),
 		size_(size), count_(0) /*strong*/
 {
 	;
@@ -84,7 +88,7 @@ allocator<T>::~allocator() /*noexcept*/
 }
 
 template<typename T>
-auto allocator<T>::swap(allocator & other) -> void /*noexcept*/
+void allocator<T>::swap(allocator & other) /*noexcept*/
 {
 	std::swap(ptr_, other.ptr_);
 	std::swap(size_, other.size_);
