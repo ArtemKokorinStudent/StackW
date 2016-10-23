@@ -1,4 +1,5 @@
 #include "allocator.hpp"
+
 template <typename T>
 class stack : private allocator<T>
 {
@@ -8,14 +9,14 @@ public:
 	stack& operator=(const stack & _stack); /*strong*/
 	size_t count() const; /*noexcept*/
 	void push(T const &); /*strong*/
-	const T& top() const; /*strong*/
+	const T & top() const; /*strong*/
 	void pop(); /*strong*/
 	bool empty() { return this->count_ == 0; } /*noexcept*/
 	~stack(); /*noexcept*/
 };
 
 template<typename T>
-stack<T>::stack(size_t size = 0) : allocator(size) {
+stack<T>::stack(size_t size) : allocator(size) {
 	;
 }
 
@@ -28,7 +29,7 @@ stack<T>::stack(const stack & _stack) /*strong*/
 }
 
 template<typename T>
-stack<T>& stack<T>::operator=(const stack & _stack) /*strong*/
+stack<T> & stack<T>::operator=(const stack & _stack) /*strong*/
 {
 	if (this != &_stack) {
 		stack(_stack).swap(*this);
@@ -47,33 +48,25 @@ size_t stack<T>::count() const /*noexcept*/
 	return this->count_;
 }
 
-template<typename T>
-void stack<T>::push(T const & new_element) /*strong*/
+template <typename T>
+void stack<T>::push(const T & value) /*strong*/
 {
-	if (this->count_ >= this->size_) {
-		size_t new_size = (this->size_ * 3) / 2 + 1;
-		T* new_array = operatorNewCopiedArray(this->ptr_, this->count_, new_size);
-		try {
-			construct(&new_array[this->count_], new_element);
+	if (this->count_ == this->size_) {
+		size_t array_size = (this->size_ * 3) / 2 + 1;
+
+		stack temp(array_size);
+		while (temp.count() < this->count_) {
+			temp.push(this->ptr_[temp.count()]);
 		}
-		catch (...) {
-			destroy(new_array, new_array + this->count_);
-			::operator delete(new_array);
-			throw;
-		}
-		destroy(this->ptr_, this->ptr_ + this->count_);
-		::operator delete(this->ptr_);
-		this->ptr_ = new_array;
-		this->size_ = new_size;
+
+		this->swap(temp);
 	}
-	else {
-		construct(&(this->ptr_[this->count_]), new_element);
-	}
-	this->count_++;
+	construct(this->ptr_ + this->count_, value);
+	++this->count_;
 }
 
 template<typename T>
-const T& stack<T>::top() const /*strong*/ //I don't understand first const
+const T & stack<T>::top() const /*strong*/
 {
 	if (this->count_ == 0) {
 		throw ("top: count_ == 0");
@@ -87,6 +80,7 @@ void stack<T>::pop() /*strong*/
 	if (this->count_ == 0) {
 		throw("pop(): count_ == 0");
 	}
+	destroy(&(this->ptr_[this->count_ - 1]));
 	this->count_--;
 }
 
@@ -95,4 +89,3 @@ stack<T>::~stack() /*noexcept*/
 {
 	destroy(this->ptr_, this->ptr_ + this->count_);
 }
-
