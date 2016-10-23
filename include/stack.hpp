@@ -16,7 +16,7 @@ public:
 };
 
 template<typename T>
-stack<T>::stack(size_t size) : allocator(size) {
+stack<T>::stack(size_t size) : allocator<T>(size) {
 	;
 }
 
