@@ -1,91 +1,69 @@
 #include "allocator.hpp"
 
 template <typename T>
-class stack : private allocator<T>
-{
+class stack {
 public:
-	stack(size_t size = 0); /*noexcept*/
-	stack(const stack & _stack); /*strong*/
-	stack& operator=(const stack & _stack); /*strong*/
-	size_t count() const; /*noexcept*/
-	void push(T const &); /*strong*/
-	const T & top() const; /*strong*/
+	explicit stack(size_t size = 0);
+	auto operator=(stack const & other) /*strong*/ -> stack &;
+
+	auto count() const -> size_t { return allocator_.count(); } /*noexcept*/
+	bool empty() const { return allocator_.empty(); } /*noexcept*/
+
+	void push(T const & value); /*strong*/
 	void pop(); /*strong*/
-	bool empty() { return this->count_ == 0; } /*noexcept*/
-	~stack(); /*noexcept*/
+	auto top() -> T &; /*strong*/
+	auto top() const -> T const &; /*strong*/
+private:
+	allocator<T> allocator_;
 };
 
 template<typename T>
-stack<T>::stack(size_t size) : allocator<T>(size) {
-	;
+stack<T>::stack(size_t size) : allocator_(size) {
+	; 
 }
 
 template<typename T>
-stack<T>::stack(const stack & _stack) /*strong*/
-{
-	this->ptr_ = operatorNewCopiedArray(_stack.ptr_, _stack.count_, _stack.size_);
-	this->size_ = _stack.size_;
-	this->count_ = _stack.count_;
-}
-
-template<typename T>
-stack<T> & stack<T>::operator=(const stack & _stack) /*strong*/
-{
-	if (this != &_stack) {
-		stack(_stack).swap(*this);
-		/*T* midterm = newCopiedArray(_stack.ptr_, _stack.count_, _stack.size_);
-		delete[] this->ptr_;
-		this->ptr_ = midterm;
-		this->count_ = _stack.count_;
-		this->size_ = _stack.size_;*/
+auto stack<T>::operator=(stack const & other) -> stack & {
+	if (this != &other) {
+		(allocator<T>(other.allocator_)).swap(allocator_);
 	}
 	return *this;
 }
 
 template<typename T>
-size_t stack<T>::count() const /*noexcept*/
-{
-	return this->count_;
-}
-
-template <typename T>
-void stack<T>::push(const T & value) /*strong*/
-{
-	if (this->count_ == this->size_) {
-		size_t array_size = (this->size_ * 3) / 2 + 1;
-
-		stack temp(array_size);
-		while (temp.count() < this->count_) {
-			temp.push(this->ptr_[temp.count()]);
-		}
-
-		this->swap(temp);
+void stack<T>::push(T const & value) {
+	if (allocator_.full()) {
+		allocator_.resize();
 	}
-	construct(this->ptr_ + this->count_, value);
-	++this->count_;
+	allocator_.construct(this->count(), value);
 }
 
 template<typename T>
-const T & stack<T>::top() const /*strong*/
-{
-	if (this->count_ == 0) {
-		throw ("top: count_ == 0");
+void stack<T>::pop() {
+	if (this->count() > 0) {
+		allocator_.destroy(this->count() - 1);
 	}
-	return this->ptr_[this->count_ - 1];
+	else {
+		throw("stack is empty");
+	}
 }
 
 template<typename T>
-void stack<T>::pop() /*strong*/
-{
-	if (this->count_ == 0) {
-		throw("pop(): count_ == 0");
+auto stack<T>::top() -> T & {
+	if (this->count() > 0) {
+		return allocator_.getElement(this->count() - 1);
 	}
-	destroy(&(this->ptr_[this->count_ - 1]));
-	this->count_--;
+	else {
+		throw("stack is empty");
+	}
 }
 
 template<typename T>
-stack<T>::~stack() /*noexcept*/
-{
-	destroy(this->ptr_, this->ptr_ + this->count_);
+auto stack<T>::top() const -> T const & {
+	if (this->count() > 0) {
+		return allocator_.getElement(this->count() - 1);
+	}
+	else {
+		throw("stack is empty");
+	}
 }
