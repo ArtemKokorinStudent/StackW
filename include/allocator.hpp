@@ -1,38 +1,5 @@
 #include <utility>
-
-template <typename T1, typename T2>
-void construct(T1 * ptr, const T2 & value) /*strong*/{
-	new(ptr) T1(value);
-}
-
-template <typename T>
-void destroy(T * ptr) noexcept
-{
-	ptr->~T();
-}
-
-template <typename FwdIter>
-void destroy(FwdIter first, FwdIter last) noexcept
-{
-	for (; first != last; ++first) {
-		destroy(&*first);
-	}
-}
-
-template<typename T>
-T* newCopiedArray(const T* source, size_t source_count, size_t destination_size) /*strong*/
-{
-	T* new_array = nullptr;
-	try {
-		new_array = new T[destination_size];
-		std::copy(source, source + source_count, new_array); //Throws if an element assignment throws
-	}
-	catch (...) {
-		delete[] new_array;
-		throw;
-	}
-	return new_array;
-}
+#include "bitset.hpp"
 
 template<typename T>
 T* operatorNewCopiedArray(const T * source, size_t source_count, size_t destination_size) /*strong*/
@@ -57,40 +24,111 @@ T* operatorNewCopiedArray(const T * source, size_t source_count, size_t destinat
 template <typename T>
 class allocator
 {
-protected:
-	allocator(size_t size = 0); /*strong*/
-	~allocator(); /*noexcept*/
+public:
+	explicit allocator(size_t size = 0); /*strong*/
+	allocator(allocator const & other); /*strong*/
+	auto operator=(allocator const & other) -> allocator & = delete;
+	~allocator();
+
+	auto resize() -> void; /*strong*/
+
+	auto construct(size_t index, T const & value) -> void; /*strong*/
+	auto destroy(size_t index) -> void; /*noexcept*/
+
+	auto get() -> T * { return ptr_; } /*noexcept*/
+	auto get() const -> T const * { return ptr_; } /*noexcept*/
+	auto getElement(size_t index) -> T & { return ptr_[index]; }
+	auto getElement(size_t index) const -> T const & { return ptr_[index]; }
+
+	auto count() const -> size_t { return map_->counter(); } /*noexcept*/
+	bool full() const { return map_->counter() == size_; } /*noexcept*/
+	bool empty() const { return map_->counter() == 0; } /*noexcept*/
 	void swap(allocator & other); /*noexcept*/
-
-	allocator(const allocator &) = delete;
-	auto operator =(const allocator &)->allocator & = delete;
-
+private:
+	//auto destroy(T * first, T * last) -> void; /*noexcept*/
+	
 	T * ptr_;
 	size_t size_;
-	size_t count_;
+	std::unique_ptr<bitset> map_;
 };
 
 template<typename T>
-allocator<T>::allocator(size_t size) :
-	ptr_(size == 0 ?
-		nullptr : 
-		static_cast<T*>(operator new(size * sizeof(T)))
-		),
-		size_(size), count_(0) /*strong*/
+allocator<T>::allocator(size_t size) 
+	: ptr_(static_cast<T*>(operator new(size * sizeof(T)))),
+	size_(size),
+	map_(std::make_unique<bitset>(size)) 
 {
 	;
 }
 
 template<typename T>
-allocator<T>::~allocator() /*noexcept*/
+allocator<T>::allocator(allocator const & other)
+	: allocator<T>(other.size_)
 {
-	::operator delete(ptr_);
+	for (size_t i = 0; i < size_; ++i) {
+		construct(i, other.ptr_[i]);
+	}
 }
 
 template<typename T>
-void allocator<T>::swap(allocator & other) /*noexcept*/
-{
+allocator<T>::~allocator() {
+	for (size_t i = 0; i < size_; ++i) {
+		if (map_->test(i)) {
+			this->destroy(i);
+		}
+	}
+	operator delete(ptr_);
+}
+
+template<typename T>
+void allocator<T>::resize() {
+	allocator<T> temp((size_ * 3) / 2 + 1);
+	for (size_t i = 0; i < size_; ++i) {
+		if (map_->test(i)) {
+			temp.construct(i, ptr_[i]);
+		}
+	}
+	this->swap(temp);
+}
+
+template<typename T>
+void allocator<T>::construct(size_t index, T const & value) {
+	if (index < size_) {
+		new (&(ptr_[index])) T(value);
+		map_->set(index);
+	}
+	else {
+		throw("index >= size_");
+	}
+}
+
+template<typename T>
+void allocator<T>::destroy(size_t index) {
+	if (map_->test(index)) {
+		if (index < size_) {
+			ptr_->~T();
+			map_->reset(index);
+		}
+		else {
+			throw (index >= size_);
+		}
+	}
+	else {
+		throw ("memory is occupied");
+	}
+}
+
+/*template<typename T>
+auto allocator<T>::destroy(T * first, T * last)->void {
+	if (first >= ptr_&&last <= ptr_ + this->count())
+		for (; first != last; ++first) {
+			destroy(&*first);
+		}
+}*/
+
+template<typename T>
+void allocator<T>::swap(allocator & other) {
 	std::swap(ptr_, other.ptr_);
 	std::swap(size_, other.size_);
-	std::swap(count_, other.count_);
+	std::swap(map_, other.map_);
 }
