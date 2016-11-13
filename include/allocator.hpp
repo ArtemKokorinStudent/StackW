@@ -37,8 +37,8 @@ public:
 
 	auto get() -> T * { return ptr_; } /*noexcept*/
 	auto get() const -> T const * { return ptr_; } /*noexcept*/
-	auto getElement(size_t index) -> T & { return ptr_[index]; }
-	auto getElement(size_t index) const -> T const & { return ptr_[index]; }
+	auto getElement(size_t index) -> T & { return ptr_[index]; } /*noexcept*/
+	auto getElement(size_t index) const -> T const & { return ptr_[index]; } /*noexcept*/
 
 	auto count() const -> size_t { return map_->counter(); } /*noexcept*/
 	bool full() const { return map_->counter() == size_; } /*noexcept*/
@@ -65,8 +65,13 @@ template<typename T>
 allocator<T>::allocator(allocator const & other)
 	: allocator<T>(other.size_)
 {
-	for (size_t i = 0; i < size_; ++i) {
-		construct(i, other.ptr_[i]);
+	try {
+		for (size_t i = 0; i < size_; ++i) {
+			construct(i, other.ptr_[i]);
+		}
+	}
+	catch (...) {
+		this->~allocator();
 	}
 }
 
@@ -104,17 +109,17 @@ void allocator<T>::construct(size_t index, T const & value) {
 
 template<typename T>
 void allocator<T>::destroy(size_t index) {
-	if (map_->test(index)) {
-		if (index < size_) {
+	if (index < size_) {
+		if (map_->test(index)) {
 			ptr_->~T();
 			map_->reset(index);
 		}
 		else {
-			throw (index >= size_);
+			throw ("memory is occupied");
 		}
 	}
 	else {
-		throw ("memory is occupied");
+		throw ("index >= size_");
 	}
 }
 
