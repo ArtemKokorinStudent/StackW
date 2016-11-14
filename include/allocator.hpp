@@ -112,7 +112,7 @@ template<typename T>
 void allocator<T>::destroy(size_t index) {
 	if (index < size_) {
 		if (map_->test(index)) {
-			ptr_->~T();
+			ptr_[index].~T();
 			map_->reset(index);
 		}
 		else {
