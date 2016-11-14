@@ -72,6 +72,7 @@ allocator<T>::allocator(allocator const & other)
 	}
 	catch (...) {
 		this->~allocator();
+		throw;
 	}
 }
 
