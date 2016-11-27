@@ -4,23 +4,31 @@
 #include <iostream>
 
 
+const int N = 20;
 TEST_CASE("drt", "[T]") {
+	int tests[N];
+	for (size_t i = 0; i < N; i++) {
+		tests[i] = rand();
+	}
+	
 	stack<int> st;
-
-	std::thread th1([&](stack<int> & st) {
-		for (size_t i = 0; i < 100; i++) {
-			st.push(rand());
-		}
-	}, std::ref(st));
-	std::thread th2([&](stack<int> & st) {
-		for (size_t i = 0; i < 100;) {
+	std::thread th2([&](stack<int> & st, int * tests) {
+		for (size_t i = 0; i < N;) {
 			if (!st.empty()) {
 				std::cout << st.top() << std::endl;
 				st.pop();
 				i++;
+				std::this_thread::sleep_for(std::chrono::milliseconds(30));
 			}
 		}
-	}, std::ref(st));
+	}, std::ref(st), tests);
+	std::thread th1([&](stack<int> & st, int * tests) {
+		for (size_t i = 0; i < N; i++) {
+			st.push(i);
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+	}, std::ref(st), tests);
+	
 	th1.join();
 	th2.join();
 }
