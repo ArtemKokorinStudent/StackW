@@ -1,4 +1,6 @@
+#include "catch.hpp"
 #include "stack.hpp"
+
 stack<int> st;
 TEST_CASE("Thow threads", "[T]") {
 	std::thread thread1([]() {
