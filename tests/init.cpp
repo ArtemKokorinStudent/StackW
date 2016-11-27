@@ -1,18 +1,35 @@
-#include "catch.hpp"
-
 #include "stack.hpp"
-
+stack<int> st;
+TEST_CASE("Thow threads", "[T]") {
+	std::thread thread1([]() {
+		for (size_t i = 0; i < 100; i++) {
+			st.push(rand());
+		}
+	});
+	std::thread thread2([]() {
+		for (size_t i = 0; i < 100;) {
+			if (!st.empty()) {
+				std::cout << st.top() << std::endl;
+				st.pop();
+				i++;
+			}
+		}
+	});
+	thread1.join();
+	thread2.join();
+}
 TEST_CASE("Stack can be instantiated by various types", "[instantiation]") {
 	REQUIRE_NOTHROW(stack<int> st1);
-	REQUIRE_NOTHROW(stack<double> st1);
-	REQUIRE_NOTHROW(stack<char> st1);
-	REQUIRE_NOTHROW(stack<int*> st1);
-	REQUIRE_NOTHROW(stack<stack<int>> st1);
+	REQUIRE_NOTHROW(stack<double> st2);
+	REQUIRE_NOTHROW(stack<char> st3);
+	REQUIRE_NOTHROW(stack<int*> st4);
+	REQUIRE_NOTHROW(stack<stack<int>> st5);
 }
 TEST_CASE("Push, pop, top", "[push_pop_top]") {
 	stack<int> st;
 	st.push(1);
 	st.push(2);
+	st.top();
 	REQUIRE(st.top() == 2);
 	st.pop();
 	REQUIRE(st.top() == 1);
@@ -31,13 +48,15 @@ TEST_CASE("count", "[count]") {
 	REQUIRE(st.count() == 0);
 }
 TEST_CASE("Copy constructor", "[copy_ctr]") {
-	stack<int> st1;
+	stack<double> st1;
 	st1.push(1);
 	st1.push(2);
-	REQUIRE_NOTHROW(stack<int> st2 = st1);
+	//REQUIRE_NOTHROW(stack<double> st2 = st1);
 
-	stack<int> st3 = st1;
-	stack<int> st4 = st1;
+	stack<double> st3;
+	st3 = st1;
+	stack<double> st4;
+	st4 = st1;
 	REQUIRE(st1.top() == 2);
 	REQUIRE(st3.top() == 2);
 	st3.pop();
@@ -70,14 +89,14 @@ TEST_CASE("Allocator doesn't (use or need) default ctors", "[allocator]") {
 		A() {
 			throw "ctor is called";
 		}
-		A(int a) { 
+		A(int a) {
 			;
 		}
 	};
 	REQUIRE_NOTHROW(
 		stack<A> st;
-		st.push(4);
-		st.push(20);
+	st.push(4);
+	st.push(20);
 	);
 	class B {
 	public:
@@ -88,19 +107,22 @@ TEST_CASE("Allocator doesn't (use or need) default ctors", "[allocator]") {
 	stack<B> st;
 	st.push(40);
 }
-bool dtor_is_called1 = false;
-TEST_CASE("Allocator calls dtors", "[allocator]") {
+bool dtor_is_called12 = false;
+TEST_CASE("Allocator calls dtor when pop", "[allocator_dtor]") {
 	class A {
 	public:
 		A(int a) {
-			;
+			//std::cout << "A(int)" << std::endl;
+		}
+		A(const A & a) {
+			//std::cout << "copy constructor is called " << std::endl;
 		}
 		~A() {
-			dtor_is_called1 = true;
+			dtor_is_called12 = true;
 		}
 	};
 	stack<A> st;
 	st.push(32);
 	st.pop();
-	REQUIRE(dtor_is_called1);
+	REQUIRE(dtor_is_called12);
 }
