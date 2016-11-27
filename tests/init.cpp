@@ -1,25 +1,29 @@
 #include "catch.hpp"
 #include "stack.hpp"
 #include <thread>
+#include <iostream>
 
-stack<int> st;
-TEST_CASE("Thow threads", "[T]") {
-	std::thread thread1([]() {
-		for (size_t i = 0; i < 100; i++) {
-			st.push(rand());
+void function1(stack<int> & st) {
+	for (size_t i = 0; i < 100; i++) {
+		st.push(rand());
+	}
+}
+void function2(stack<int> & st) {
+	for (size_t i = 0; i < 100;) {
+		if (!st.empty()) {
+			std::cout << st.top() << std::endl;
+			st.pop();
+			i++;
 		}
-	});
-	std::thread thread2([]() {
-		for (size_t i = 0; i < 100;) {
-			if (!st.empty()) {
-				std::cout << st.top() << std::endl;
-				st.pop();
-				i++;
-			}
-		}
-	});
-	thread1.join();
-	thread2.join();
+	}
+}
+TEST_CASE("drt", "[T]") {
+	stack<int> st;
+
+	std::thread th1(function1, std::ref(st));
+	std::thread th2(function2, std::ref(st));
+	th1.join();
+	th2.join();
 }
 TEST_CASE("Stack can be instantiated by various types", "[instantiation]") {
 	REQUIRE_NOTHROW(stack<int> st1);
