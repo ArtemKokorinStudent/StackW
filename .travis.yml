@@ -69,6 +69,7 @@ script:
     - BUILD_DIR="${TRAVIS_BUILD_DIR}/build"
     - mkdir -p "${BUILD_DIR}"
     - cd "${BUILD_DIR}"
+    - lpthread
     - cmake -DGLOBAL_PROJECT_NAME=stack ..
     - make
     - make test ARGS="-VV"
