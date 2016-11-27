@@ -3,27 +3,35 @@
 #include <thread>
 #include <iostream>
 
-void function1(stack<int> & st) {
-	for (size_t i = 0; i < 100; i++) {
-		st.push(rand());
-	}
-}
-void function2(stack<int> & st) {
-	for (size_t i = 0; i < 100;) {
-		if (!st.empty()) {
-			std::cout << st.top() << std::endl;
-			st.pop();
-			i++;
-		}
-	}
-}
+
 TEST_CASE("drt", "[T]") {
 	stack<int> st;
 
-	std::thread th1(function1, std::ref(st));
-	std::thread th2(function2, std::ref(st));
+	std::thread th1([&](stack<int> & st) {
+		for (size_t i = 0; i < 100; i++) {
+			st.push(rand());
+		}
+	}, std::ref(st));
+	std::thread th2([&](stack<int> & st) {
+		for (size_t i = 0; i < 100;) {
+			if (!st.empty()) {
+				std::cout << st.top() << std::endl;
+				st.pop();
+				i++;
+			}
+		}
+	}, std::ref(st));
 	th1.join();
 	th2.join();
+}
+TEST_CASE("Cyrillic_test", "[instantiation]") {
+	stack<int> st;
+	for (size_t i = 0; i < 4; i++) {
+		st.push(i);
+	}
+	for (size_t i = 0; i < 2; i++) {
+		st.pop();
+	}
 }
 TEST_CASE("Stack can be instantiated by various types", "[instantiation]") {
 	REQUIRE_NOTHROW(stack<int> st1);
