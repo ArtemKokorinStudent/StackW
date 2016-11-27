@@ -1,6 +1,7 @@
 #include "allocator.hpp"
 #include <mutex>
 #include <vector>
+#include <iostream>
 
 template <typename T>
 class stack {
