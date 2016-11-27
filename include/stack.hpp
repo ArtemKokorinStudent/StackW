@@ -14,7 +14,7 @@ public:
 	void push(T const & value); /*strong*/
 	void pop(); /*strong*/
 	auto top()->T &; /*strong*/
-	auto top() const->T const &; /*strong*/
+	//auto top()->T const &; /*strong*/
 private:
 	allocator<T> allocator_;
 	std::mutex mutex1;
@@ -71,8 +71,8 @@ auto stack<T>::top() -> T & {
 	}
 }
 
-template<typename T>
-auto stack<T>::top() const -> T const & {
+/*template<typename T>
+auto stack<T>::top() -> T const & {
 	mutex1.lock();
 	if (this->count() > 0) {
 		mutex1.unlock();
@@ -82,4 +82,4 @@ auto stack<T>::top() const -> T const & {
 		mutex1.unlock();
 		throw("stack is empty");
 	}
-}
+}*/
