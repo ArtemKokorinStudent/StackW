@@ -15,7 +15,7 @@ TEST_CASE("drt", "[T]") {
 	std::thread th2([&](stack<int> & st, bool * tests) {
 		for (size_t i = 0; i < N;) {
 			if (!st.empty()) {
-				tests[i] = true;
+				tests[st.top()] = true;
 				std::cout << st.top() << std::endl;
 				st.pop();
 				i++;
@@ -29,11 +29,11 @@ TEST_CASE("drt", "[T]") {
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
 	}, std::ref(st), tests);
+	th1.join();
+	th2.join();
 	for (auto test : tests) {
 		REQUIRE(test);
 	}
-	th1.join();
-	th2.join();
 }
 TEST_CASE("Cyrillic_test", "[instantiation]") {
 	stack<int> st;
