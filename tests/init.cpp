@@ -2,19 +2,20 @@
 #include "stack.hpp"
 #include <thread>
 #include <iostream>
-
+#include <chrono>
 
 const int N = 20;
 TEST_CASE("drt", "[T]") {
-	int tests[N];
-	for (size_t i = 0; i < N; i++) {
-		tests[i] = rand();
+	bool tests[N];
+	for (auto test : tests) {
+		test = false;
 	}
 	
 	stack<int> st;
-	std::thread th2([&](stack<int> & st, int * tests) {
+	std::thread th2([&](stack<int> & st, bool * tests) {
 		for (size_t i = 0; i < N;) {
 			if (!st.empty()) {
+				tests[i] = true;
 				std::cout << st.top() << std::endl;
 				st.pop();
 				i++;
@@ -22,13 +23,15 @@ TEST_CASE("drt", "[T]") {
 			}
 		}
 	}, std::ref(st), tests);
-	std::thread th1([&](stack<int> & st, int * tests) {
+	std::thread th1([&](stack<int> & st, bool * tests) {
 		for (size_t i = 0; i < N; i++) {
 			st.push(i);
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
 	}, std::ref(st), tests);
-	
+	for (auto test : tests) {
+		REQUIRE(test);
+	}
 	th1.join();
 	th2.join();
 }
@@ -76,10 +79,8 @@ TEST_CASE("Copy constructor", "[copy_ctr]") {
 	st1.push(2);
 	//REQUIRE_NOTHROW(stack<double> st2 = st1);
 
-	stack<double> st3;
-	st3 = st1;
-	stack<double> st4;
-	st4 = st1;
+	stack<double> st3 = st1;
+	stack<double> st4 = st1;
 	REQUIRE(st1.top() == 2);
 	REQUIRE(st3.top() == 2);
 	st3.pop();
