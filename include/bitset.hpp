@@ -6,7 +6,7 @@ public:
 	explicit bitset(size_t size); /*strong*/
 
 	bitset(bitset const & other) = delete;
-	auto operator=(bitset const & other) -> bitset & = delete;
+	auto operator=(bitset const & other)->bitset & = delete;
 
 	bitset(bitset && other) = delete;
 	auto operator=(bitset && other)->bitset & = delete;
@@ -16,7 +16,7 @@ public:
 	bool test(size_t index) const; /*strong*/
 
 	auto size() -> size_t { return size_; } /*noexcept*/
-	auto counter() -> size_t { 
+	auto counter() -> size_t {
 		return counter_;
 	} /*noexcept*/
 private:
@@ -25,9 +25,9 @@ private:
 	size_t counter_;
 };
 
-bitset::bitset(size_t size) : 
-	ptr_(std::make_unique<bool[]>(size)), 
-	size_(size), 
+bitset::bitset(size_t size) :
+	ptr_(std::make_unique<bool[]>(size)),
+	size_(size),
 	counter_(0) { /*strong*/
 	for (size_t i = 0; i < size; ++i) {
 		ptr_[i] = false;
@@ -46,8 +46,8 @@ void bitset::set(size_t index) { /*strong*/
 
 void bitset::reset(size_t index) { /*strong*/
 	if (index < size_) {
-		ptr_[index] = false; 
-		--counter_; 
+		ptr_[index] = false;
+		--counter_;
 	}
 	else {
 		throw("index >= size_");
