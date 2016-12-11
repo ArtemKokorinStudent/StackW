@@ -1,6 +1,7 @@
 #include "allocator.hpp"
 #include <mutex>
 #include <vector>
+#include <memory>
 
 template <typename T>
 class stack {
@@ -13,9 +14,7 @@ public:
 	bool empty() const { return allocator_.empty(); } /*noexcept*/
 
 	void push(T const & value); /*strong*/
-	void pop(); /*strong*/
-	auto top()->T &; /*strong*/
-	//auto top()->T const &; /*strong*/
+	std::shared_ptr<T> pop(); /*strong*/
 private:
 	allocator<T> allocator_;
 	std::mutex mutex;
@@ -27,8 +26,10 @@ stack<T>::stack(size_t size) : allocator_(size) {
 }
 
 template<typename T>
-stack<T>::stack(stack const & other) : allocator_(other.allocator_) {
-	;
+stack<T>::stack(stack const & other) {
+	mutex.lock();
+	allocator_ = other.allocator_;
+	mutex.unlock();
 }
 
 template<typename T>
@@ -52,40 +53,15 @@ void stack<T>::push(T const & value) {
 }
 
 template<typename T>
-void stack<T>::pop() {
+std::shared_ptr<T> stack<T>::pop() {
 	mutex.lock();
-	if (this->count() > 0) {
-		allocator_.destroy(this->count() - 1);
+	if (allocator_.count() == 0) {
+		return nullptr;
 	}
-	else {
-		mutex.unlock();
-		throw("stack is empty");
-	}
+	std::shared_ptr<T> top(std::make_shared<T>(
+		std::move(allocator_.getElement(allocator_.count() - 1)
+			)));
+	allocator_.destroy(allocator_.count() - 1);
 	mutex.unlock();
+	return top;
 }
-
-template<typename T>
-auto stack<T>::top() -> T & {
-	mutex.lock();
-	if (this->count() > 0) {
-		mutex.unlock();
-		return allocator_.getElement(this->count() - 1);
-	}
-	else {
-		mutex.unlock();
-		throw("stack is empty");
-	}
-}
-
-/*template<typename T>
-auto stack<T>::top() -> T const & {
-	mutex.lock();
-	if (this->count() > 0) {
-		mutex.unlock();
-		return allocator_.getElement(this->count() - 1);
-	}
-	else {
-		mutex.unlock();
-		throw("stack is empty");
-	}
-}*/
