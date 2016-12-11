@@ -4,26 +4,30 @@
 #include <iostream>
 #include <chrono>
 
-const int N = 20;
+const int N = 17;
 TEST_CASE("drt", "[T]") {
 	bool tests[N];
 	for (auto test : tests) {
-		test = false;
+		test = true;
 	}
 	
 	stack<int> st;
 	std::thread th2([&](stack<int> & st, bool * tests) {
-		for (size_t i = 0; i < N;) {
-			if (!st.empty()) {
-				std::cout << st.top() << std::endl;
-				st.pop();
+		std::cout << "Popping thread\n";
+		st.pop();
+		/*for (size_t i = 0; i < N;) {
+			std::cout << "Popping thread\n";
+			std::shared_ptr<int> current_element = st.pop();
+			if (current_element) {
+				std::cout << *(current_element);
 				i++;
 				std::this_thread::sleep_for(std::chrono::milliseconds(30));
 			}
-		}
+		}*/
 	}, std::ref(st), tests);
 	std::thread th1([&](stack<int> & st, bool * tests) {
 		for (size_t i = 0; i < N; i++) {
+			std::cout << "Pushing thread\n";
 			st.push(i);
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
@@ -54,11 +58,8 @@ TEST_CASE("Push, pop, top", "[push_pop_top]") {
 	stack<int> st;
 	st.push(1);
 	st.push(2);
-	st.top();
-	REQUIRE(st.top() == 2);
-	st.pop();
-	REQUIRE(st.top() == 1);
-	st.pop();
+	REQUIRE(*(st.pop()) == 2);
+	REQUIRE(*(st.pop()) == 1);
 }
 TEST_CASE("count", "[count]") {
 	stack<int> st;
@@ -80,13 +81,11 @@ TEST_CASE("Copy constructor", "[copy_ctr]") {
 
 	stack<double> st3 = st1;
 	stack<double> st4 = st1;
-	REQUIRE(st1.top() == 2);
-	REQUIRE(st3.top() == 2);
-	st3.pop();
-	REQUIRE(st3.top() == 1);
-	REQUIRE(st4.top() == 2);
-	st4.pop();
-	REQUIRE(st4.top() == 1);
+	REQUIRE(*(st1.pop()) == 2);
+	REQUIRE(*(st3.pop()) == 2);
+	REQUIRE(*(st3.pop()) == 1);
+	REQUIRE(*(st4.pop()) == 2);
+	REQUIRE(*(st4.pop()) == 1);
 }
 TEST_CASE("Equal", "[equal]") {
 	stack<int> st1;
@@ -96,9 +95,8 @@ TEST_CASE("Equal", "[equal]") {
 	st1.push(1);
 	st1.push(4);
 	st2 = st1;
-	REQUIRE(st2.top() == 4);
-	st2.pop();
-	REQUIRE(st2.top() == 1);
+	REQUIRE(*(st2.pop()) == 4);
+	REQUIRE(*(st2.pop()) == 1);
 }
 TEST_CASE("Empty", "[empty]") {
 	stack<int> st1;
