@@ -27,7 +27,12 @@ class allocator
 public:
 	explicit allocator(size_t size = 0); /*strong*/
 	allocator(allocator const & other); /*strong*/
-	auto operator=(allocator const & other) -> allocator & = delete;
+	auto operator=(allocator const & other)->allocator & {
+		if (this != &other) {
+			(allocator<T>(other)).swap(*this);
+		}
+		return *this;
+	};
 	~allocator();
 
 	auto resize() -> void; /*strong*/
@@ -40,23 +45,25 @@ public:
 	auto getElement(size_t index) -> T & { return ptr_[index]; } /*noexcept*/
 	auto getElement(size_t index) const -> T const & { return ptr_[index]; } /*noexcept*/
 
-	auto count() const -> size_t { return map_->counter(); } /*noexcept*/
+	auto count() const -> size_t {
+		return map_->counter();
+	} /*noexcept*/
 	bool full() const { return map_->counter() == size_; } /*noexcept*/
 	bool empty() const { return map_->counter() == 0; } /*noexcept*/
 	void swap(allocator & other); /*noexcept*/
 private:
 	//auto destroy(T * first, T * last) -> void; /*noexcept*/
-	
+
 	T * ptr_;
 	size_t size_;
 	std::unique_ptr<bitset> map_;
 };
 
 template<typename T>
-allocator<T>::allocator(size_t size) 
+allocator<T>::allocator(size_t size)
 	: ptr_(static_cast<T*>(operator new(size * sizeof(T)))),
 	size_(size),
-	map_(std::make_unique<bitset>(size)) 
+	map_(std::make_unique<bitset>(size))
 {
 	;
 }
@@ -72,7 +79,6 @@ allocator<T>::allocator(allocator const & other)
 	}
 	catch (...) {
 		this->~allocator();
-		throw;
 	}
 }
 
@@ -100,6 +106,9 @@ void allocator<T>::resize() {
 template<typename T>
 void allocator<T>::construct(size_t index, T const & value) {
 	if (index < size_) {
+		if (map_->test(index)) {
+			throw ("=(");
+		}
 		new (&(ptr_[index])) T(value);
 		map_->set(index);
 	}
@@ -112,7 +121,7 @@ template<typename T>
 void allocator<T>::destroy(size_t index) {
 	if (index < size_) {
 		if (map_->test(index)) {
-			ptr_[index].~T();
+			ptr_->~T();
 			map_->reset(index);
 		}
 		else {
@@ -126,10 +135,10 @@ void allocator<T>::destroy(size_t index) {
 
 /*template<typename T>
 auto allocator<T>::destroy(T * first, T * last)->void {
-	if (first >= ptr_&&last <= ptr_ + this->count())
-		for (; first != last; ++first) {
-			destroy(&*first);
-		}
+if (first >= ptr_&&last <= ptr_ + this->count())
+for (; first != last; ++first) {
+destroy(&*first);
+}
 }*/
 
 template<typename T>
